@@ -1,23 +1,19 @@
-import { DynamoDBClient, PutItemCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
-// import bcrypt from 'bcryptjs';
-
-// Remove unused import
-// import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  GetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 const dynamoDB = new DynamoDBClient({ region: "us-east-1" });
-
 const DYNAMODB_TABLE_NAME = "Users";
-const PASSWORD_SALT_LENGTH = 10;
 
 export const handler = async (event) => {
   try {
-    // Parse event.body only once
     const { email, name, password } = JSON.parse(event.body);
     console.log(email, name, password);
 
     if (!(email && name && password)) {
       return {
-        statusCode: 400, // Changed from 403 to 400 for bad request
+        statusCode: 400,
         body: JSON.stringify({ message: "Name, password and email required" }),
       };
     }
@@ -25,20 +21,17 @@ export const handler = async (event) => {
     const user = await getUserByEmail(email);
 
     if (user) {
-      console.log("User exists")
+      console.log("User exists");
       return {
-      statusCode: 400,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-      body: JSON.stringify({ message: "User Already Exists!" }),
+        statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+        body: JSON.stringify({ message: "User Already Exists!" }),
+      };
     }
-    }
-
-    // const hashedPassword = await bcrypt.hash(password, PASSWORD_SALT_LENGTH);
-
     const timestamp = new Date().toISOString();
     const item = {
       email: { S: email },
@@ -79,16 +72,18 @@ export const handler = async (event) => {
 
 const getUserByEmail = async (email) => {
   const item = {
-    email: { S: email }
+    email: { S: email },
   };
-  
+
   console.log(email);
 
   try {
-    const data = await dynamoDB.send(new GetItemCommand({
-      TableName: DYNAMODB_TABLE_NAME,
-      Key: item,
-    }));
+    const data = await dynamoDB.send(
+      new GetItemCommand({
+        TableName: DYNAMODB_TABLE_NAME,
+        Key: item,
+      })
+    );
     console.log(data);
     if (data.Item) {
       return {
